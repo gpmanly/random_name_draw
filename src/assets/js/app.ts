@@ -16,6 +16,7 @@ import SoundEffects from '@js/SoundEffects';
   const nameListTextArea = document.getElementById('name-list') as HTMLTextAreaElement | null;
   const removeNameFromListCheckbox = document.getElementById('remove-from-list') as HTMLInputElement | null;
   const enableSoundCheckbox = document.getElementById('enable-sound') as HTMLInputElement | null;
+  const winnersListTextArea = document.getElementById('winners-list') as HTMLTextAreaElement | null;
 
   // Graceful exit if necessary elements are not found
   if (!(
@@ -31,6 +32,7 @@ import SoundEffects from '@js/SoundEffects';
     && nameListTextArea
     && removeNameFromListCheckbox
     && enableSoundCheckbox
+    && winnersListTextArea
   )) {
     console.error('One or more Element ID is invalid. This is possibly a bug.');
     return;
@@ -42,7 +44,7 @@ import SoundEffects from '@js/SoundEffects';
   }
 
   const soundEffects = new SoundEffects();
-  const MAX_REEL_ITEMS = 40;
+  const MAX_REEL_ITEMS = 240;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
   let confettiAnimationId;
 
@@ -109,6 +111,7 @@ import SoundEffects from '@js/SoundEffects';
     removeNameFromListCheckbox.checked = slot.shouldRemoveWinnerFromNameList;
     enableSoundCheckbox.checked = !soundEffects.mute;
     settingsWrapper.style.display = 'block';
+    winnersListTextArea.value = slot.winners.length ? slot.winners.join('\n') : '';
   };
 
   /** To close the setting page */
