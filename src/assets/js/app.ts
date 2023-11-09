@@ -24,6 +24,8 @@ import crc32 from 'crc/crc32';
   // Get the file input element and the import button
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
 
+  const clapSound = document.getElementById('clapSound') as HTMLAudioElement;
+
   // Graceful exit if necessary elements are not found
   if (!(
     drawButton
@@ -41,6 +43,7 @@ import crc32 from 'crc/crc32';
     && winnersListTextArea
     && fileInput
     && settingsImportButton
+    && clapSound
   )) {
     console.error('One or more Element ID is invalid. This is possibly a bug.');
     return;
@@ -89,6 +92,7 @@ import crc32 from 'crc/crc32';
 
   /**  Function to be trigger before spinning */
   const onSpinStart = () => {
+    clapSound.pause();
     stopWinningAnimation();
     drawButton.disabled = true;
     settingsButton.disabled = true;
@@ -100,6 +104,7 @@ import crc32 from 'crc/crc32';
     confettiAnimation();
     sunburstSvg.style.display = 'block';
     await soundEffects.win();
+    await clapSound.play();
     drawButton.disabled = false;
     settingsButton.disabled = false;
   };
