@@ -31,12 +31,12 @@ include ../mixins/icons
         h1.settings__title Settings
 
         <input type="file" id="file-input" accept=".txt">
-        button#settings-save.solid-button.solid-button Import
+        button#settings-import.solid-button.solid-button Import
         br
         
         div.input-group
           label.input-label(for="name-list") Name List
-          textarea.input-field.input-field--textarea(rows="8" placeholder="Separate each name by line break" id="name-list")
+          textarea.input-field.input-field--textarea(rows="8" placeholder="Separate each name by line break" id="name-list" readonly)
 
         div.input-group.input-group--2-column
           label.input-label(for="remove-from-list") Remove winner from list
