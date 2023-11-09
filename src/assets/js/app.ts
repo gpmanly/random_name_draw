@@ -18,6 +18,10 @@ import SoundEffects from '@js/SoundEffects';
   const enableSoundCheckbox = document.getElementById('enable-sound') as HTMLInputElement | null;
   const winnersListTextArea = document.getElementById('winners-list') as HTMLTextAreaElement | null;
 
+  // Get the file input element and the import button
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const importButton = document.getElementById('import-button');
+
   // Graceful exit if necessary elements are not found
   if (!(
     drawButton
@@ -33,6 +37,8 @@ import SoundEffects from '@js/SoundEffects';
     && removeNameFromListCheckbox
     && enableSoundCheckbox
     && winnersListTextArea
+    && fileInput
+    && importButton
   )) {
     console.error('One or more Element ID is invalid. This is possibly a bug.');
     return;
@@ -161,6 +167,25 @@ import SoundEffects from '@js/SoundEffects';
     soundEffects.mute = !enableSoundCheckbox.checked;
     onSettingsClose();
   });
+
+  // importButton.addEventListener('click', () => {
+  //   const file = fileInput.files?.[0];
+  //   if (file) {
+  //       const reader = new FileReader();
+  //       reader.onload = (event) => {
+  //         const content = event.target?.result as string;
+  //         const importedNames = content.split('\n').map
+  // (name => name.trim()).filter(name => name !== '');
+  //         nameListTextArea.value = content.split('\n').map
+  // (name => name.trim()).filter(name => name !== '');
+  //         console.log('Imported names:', importedNames);
+  //       };
+  //       reader.readAsText(file);
+
+  //   } else {
+  //     console.error('No file selected.');
+  //   }
+  // });
 
   // Click handler for "Discard and close" button for setting page
   settingsCloseButton.addEventListener('click', onSettingsClose);
