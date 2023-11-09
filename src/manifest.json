@@ -4,8 +4,8 @@
   "description": "Simple HTML5 random name picker for picking lucky draw winner using Web Animations API",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f20c49",
-  "theme_color": "#f20c49",
+  "background_color": "#1C355E",
+  "theme_color": "#1C355E",
   "icons": [
     {
       "src": "assets/images/touch-icons/apple-touch-icon-72x72.png",

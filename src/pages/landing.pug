@@ -10,9 +10,7 @@ include ../mixins/icons
   canvas#confetti-canvas.confetti
 
   #lucky-draw
-    .title
-      //- Pug loader currently does not handle webpack alias so we will use relative path here
-      include ../assets/images/title.svg
+    img.title(src="~@images/title.svg" alt="Lucky Draw")
 
     .slot
       .slot__outer
@@ -44,7 +42,18 @@ include ../mixins/icons
           label.input--switch
             input(type="checkbox" checked="true" id="enable-sound")
             span.slider
+
       div.settings__panel__group
         button#settings-save.solid-button.solid-button Save
         button#settings-close.solid-button.solid-button--danger Discard and close
+
+      div.settings__panel__group
+        div.input-group
+          p
+          br
+          br
+          br
+          label.input-label(for="winners-list") Winners List
+          textarea.input-field.input-field--textarea(rows="8" id="winners-list" readonly)
+
 

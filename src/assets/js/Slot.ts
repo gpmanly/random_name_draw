@@ -43,6 +43,9 @@ export default class Slot {
   /** Callback function that runs after spinning reel */
   private onNameListChanged?: NonNullable<SlotConfigurations['onNameListChanged']>;
 
+  /** List of Winners */
+  private winnersList: string[];
+
   /**
    * Constructor of Slot
    * @param maxReelItems  Maximum item inside a reel
@@ -69,6 +72,7 @@ export default class Slot {
     this.onSpinStart = onSpinStart;
     this.onSpinEnd = onSpinEnd;
     this.onNameListChanged = onNameListChanged;
+    this.winnersList = [];
 
     // Create reel animation
     this.reelAnimation = this.reelContainer?.animate(
@@ -114,6 +118,11 @@ export default class Slot {
   /** Getter for name list */
   get names(): string[] {
     return this.nameList;
+  }
+
+  /** Getter of Winners list */
+  get winners(): string[] {
+    return this.winnersList;
   }
 
   /**
@@ -191,6 +200,9 @@ export default class Slot {
 
     console.log('Displayed items: ', randomNames);
     console.log('Winner: ', randomNames[randomNames.length - 1]);
+
+    /** Save the winner */
+    this.winnersList.push(randomNames[randomNames.length - 1]);
 
     // Remove winner form name list if necessary
     if (shouldRemoveWinner) {
