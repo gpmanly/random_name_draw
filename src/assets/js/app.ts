@@ -93,6 +93,7 @@ import crc32 from 'crc/crc32';
   /**  Function to be trigger before spinning */
   const onSpinStart = () => {
     clapSound.pause();
+    clapSound.currentTime = 0;
     stopWinningAnimation();
     drawButton.disabled = true;
     settingsButton.disabled = true;
