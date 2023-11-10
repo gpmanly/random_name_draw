@@ -55,7 +55,7 @@ import crc32 from 'crc/crc32';
   }
 
   const soundEffects = new SoundEffects();
-  const MAX_REEL_ITEMS = 60;
+  const MAX_REEL_ITEMS = 120;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
   let confettiAnimationId;
 
