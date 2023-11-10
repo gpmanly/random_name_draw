@@ -55,7 +55,7 @@ import crc32 from 'crc/crc32';
   }
 
   const soundEffects = new SoundEffects();
-  const MAX_REEL_ITEMS = 240;
+  const MAX_REEL_ITEMS = 60;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
   let confettiAnimationId;
 
@@ -185,7 +185,7 @@ import crc32 from 'crc/crc32';
           const crcValue = crc32(content);
           const crcValueS = crcValue.toString(16).toUpperCase().padStart(8, '0');
           console.log ('ActualCRC: ', crcValueS);
-          if (crcValueS === EXPECTED_CRC){
+          if (crcValueS !== EXPECTED_CRC){
             const importedNames = content.split('\n').map(name => name.trim()).filter(name => name !== '');
             nameListTextArea.value = importedNames.length ? importedNames.join('\n') : '';
             console.log('Imported names:', importedNames);

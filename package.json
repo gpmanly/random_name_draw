@@ -39,7 +39,6 @@
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "mini-css-extract-plugin": "^2.6.1",
-    "node-sass": "^7.0.3",
     "postcss-loader": "^7.0.1",
     "prettier": "^2.7.1",
     "pug": "^3.0.2",
@@ -62,6 +61,7 @@
     "crc": "^4.3.2",
     "element-remove-polyfill": "^1.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
+    "node-sass": "^9.0.0",
     "web-animations-js": "^2.3.2"
   },
   "browserslist": [
