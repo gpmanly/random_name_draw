@@ -141,3 +141,8 @@
     background-color: $color-switch-handle-purple;
   }
 }
+.theme--neon .input--switch {
+  input:checked + .slider:before {
+    background-color: blue;
+  }
+}
