@@ -64,6 +64,13 @@ body {
   color: $color-text-light;
 }
 
+.theme--neon {
+  background-image: url('../images/neon.gif');
+  background-color: transparent;
+  background-position: center;
+  background-size: cover;
+}
+
 .main {
   @include flex-center;
   padding: 3.125rem 0;

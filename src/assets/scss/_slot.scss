@@ -197,6 +197,12 @@
   color: $color-text-light;
 }
 
+.theme--neon .settings__panel {
+  background-image: url('../images/Paneltest.jpg');
+  background-size: contain;
+  color: $color-text-light;
+}
+
 // Winning effects
 .sunburst {
   position: absolute;
