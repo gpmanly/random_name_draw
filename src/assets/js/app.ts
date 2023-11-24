@@ -1,7 +1,7 @@
 import confetti from 'canvas-confetti';
 import Slot from '@js/Slot';
 import SoundEffects from '@js/SoundEffects';
-import crc32 from 'crc/crc32';
+import MD5 from 'md5/md5';
 
 // Initialize slot machine
 (() => {
@@ -19,12 +19,12 @@ import crc32 from 'crc/crc32';
   const enableSoundCheckbox = document.getElementById('enable-sound') as HTMLInputElement | null;
   const winnersListTextArea = document.getElementById('winners-list') as HTMLTextAreaElement | null;
   const settingsImportButton = document.getElementById('settings-import') as HTMLButtonElement | null;
-  const EXPECTED_CRC = 'FD98D0C3';
+  const EXPECTED_HASH = '64eb11caab3c282b4b731fb21fb1ebba';
 
   // Get the file input element and the import button
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
 
-  const clapSound = document.getElementById('clapSound') as HTMLAudioElement;
+  //const clapSound = document.getElementById('clapSound') as HTMLAudioElement;
 
   // Graceful exit if necessary elements are not found
   if (!(
@@ -43,7 +43,7 @@ import crc32 from 'crc/crc32';
     && winnersListTextArea
     && fileInput
     && settingsImportButton
-    && clapSound
+    //&& clapSound
   )) {
     console.error('One or more Element ID is invalid. This is possibly a bug.');
     return;
@@ -92,8 +92,8 @@ import crc32 from 'crc/crc32';
 
   /**  Function to be trigger before spinning */
   const onSpinStart = () => {
-    clapSound.pause();
-    clapSound.currentTime = 0;
+    //clapSound.pause();
+    //clapSound.currentTime = 0;
     stopWinningAnimation();
     drawButton.disabled = true;
     settingsButton.disabled = true;
@@ -105,7 +105,7 @@ import crc32 from 'crc/crc32';
     confettiAnimation();
     sunburstSvg.style.display = 'block';
     await soundEffects.win();
-    await clapSound.play();
+    //await clapSound.play();
     drawButton.disabled = false;
     settingsButton.disabled = false;
   };
@@ -183,17 +183,17 @@ import crc32 from 'crc/crc32';
         const reader = new FileReader();
         reader.onload = (event) => {
           const content = event.target?.result as string;
-          const crcValue = crc32(content);
-          const crcValueS = crcValue.toString(16).toUpperCase().padStart(8, '0');
-          console.log ('ActualCRC: ', crcValueS);
-          if (crcValueS !== EXPECTED_CRC){
+          const xbinary = event.target?.result;
+          const md5val = MD5(xbinary, 'binary');
+          console.log(md5val);
+          if (md5val == EXPECTED_HASH){
             const importedNames = content.split('\n').map(name => name.trim()).filter(name => name !== '');
             nameListTextArea.value = importedNames.length ? importedNames.join('\n') : '';
             console.log('Imported names:', importedNames);
           }
           else {
-            nameListTextArea.value = 'CRC Mismatched -- Invalid List';
-            console.error('CRC Mismatched');
+            nameListTextArea.value = 'Hash Mismatched -- Invalid List';
+            console.error('Hash Mismatched');
           }
         };
         reader.readAsText(file);

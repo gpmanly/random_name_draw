@@ -12,6 +12,12 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+// video {
+//   object-fit: cover;
+//   position: fixed;
+//   top: 0;
+//   left: 0;
+// }
 html,
 body {
   padding: 0;
@@ -65,7 +71,7 @@ body {
 }
 
 .theme--neon {
-  background-image: url('../images/neon.gif');
+  background-image: url('../images/logoconvert.gif');
   background-color: transparent;
   background-position: center;
   background-size: cover;
