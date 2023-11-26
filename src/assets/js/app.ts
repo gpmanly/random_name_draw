@@ -183,8 +183,10 @@ import MD5 from 'md5/md5';
         const reader = new FileReader();
         reader.onload = (event) => {
           const content = event.target?.result as string;
-          const xbinary = event.target?.result;
-          const md5val = MD5(xbinary, 'binary');
+          //const xbinary = event.target?.result;
+          const md5val = MD5(content, 'utf-8');
+          const stringabc = MD5('abc');
+          console.log(stringabc);
           console.log(md5val);
           if (md5val == EXPECTED_HASH){
             const importedNames = content.split('\n').map(name => name.trim()).filter(name => name !== '');
