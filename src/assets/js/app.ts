@@ -19,7 +19,7 @@ import MD5 from 'md5/md5';
   const enableSoundCheckbox = document.getElementById('enable-sound') as HTMLInputElement | null;
   const winnersListTextArea = document.getElementById('winners-list') as HTMLTextAreaElement | null;
   const settingsImportButton = document.getElementById('settings-import') as HTMLButtonElement | null;
-  const EXPECTED_HASH = '64eb11caab3c282b4b731fb21fb1ebba';
+  const EXPECTED_HASH = '831cb0df7fc66e1168e4576bed1e7607';
 
   // Get the file input element and the import button
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
