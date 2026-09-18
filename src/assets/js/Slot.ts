@@ -147,27 +147,39 @@ export default class Slot {
     return this.shouldRemoveWinner;
   }
 
-  /**
-   * Returns a new array where the items are shuffled
-   * @template T  Type of items inside the array to be shuffled
-   * @param array  The array to be shuffled
-   * @returns The shuffled array
-   */
-  private static shuffleNames<T = unknown>(array: T[]): T[] {
-    const keys = Object.keys(array) as unknown[] as number[];
-    const result: T[] = [];
-    for (let k = 0, n = keys.length; k < array.length && n > 0; k += 1) {
-      // eslint-disable-next-line no-bitwise
-      const i = Math.random() * n | 0;
-      const key = keys[i];
-      result.push(array[key]);
-      n -= 1;
-      const tmp = keys[n];
-      keys[n] = key;
-      keys[i] = tmp;
-    }
-    return result;
+/**
+ * Returns an unbiased random integer in [0, max) using a CSPRNG.
+ */
+private static secureRandomInt(max: number): number {
+  const maxUint32 = 0xFFFFFFFF;
+  const limit = maxUint32 - (maxUint32 % max); // avoid modulo bias
+  let rand: number;
+  do {
+    rand = crypto.getRandomValues(new Uint32Array(1))[0];
+  } while (rand >= limit);
+  return rand % max;
+}
+
+/**
+ * Returns a new array where the items are shuffled
+ * @template T  Type of items inside the array to be shuffled
+ * @param array  The array to be shuffled
+ * @returns The shuffled array
+ */
+private static shuffleNames<T = unknown>(array: T[]): T[] {
+  const keys = Object.keys(array) as unknown[] as number[];
+  const result: T[] = [];
+  for (let k = 0, n = keys.length; k < array.length && n > 0; k += 1) {
+    const i = this.secureRandomInt(n);
+    const key = keys[i];
+    result.push(array[key]);
+    n -= 1;
+    const tmp = keys[n];
+    keys[n] = key;
+    keys[i] = tmp;
   }
+  return result;
+}
 
   /**
    * Function for spinning the slot
