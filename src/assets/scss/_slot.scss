@@ -27,6 +27,61 @@
     height: auto;
     display: block;
   }
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.prize-selection {
+  position: fixed;
+  inset: 0;
+  z-index: $z-index-settings;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: $color-settings-mask;
+
+  &__panel {
+    width: 100%;
+    max-width: $setting-panel-max-width;
+    padding: 2rem;
+    border-radius: 0.625rem;
+    background-image: url('../images/Paneltest.jpg');
+    background-size: cover;
+    color: $color-text-light;
+    text-align: center;
+    @include shadow('large');
+  }
+
+  &__title {
+    margin: 0 0 1.875rem;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+
+    .solid-button {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
+  @media #{$mobile} {
+    &__panel {
+      padding: 10%;
+    }
+
+    &__actions {
+      flex-direction: column;
+    }
+  }
 }
 
 .control-group {

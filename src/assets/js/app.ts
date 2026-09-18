@@ -17,8 +17,14 @@ import MD5 from 'md5/md5';
   const nameListTextArea = document.getElementById('name-list') as HTMLTextAreaElement | null;
   const removeNameFromListCheckbox = document.getElementById('remove-from-list') as HTMLInputElement | null;
   const enableSoundCheckbox = document.getElementById('enable-sound') as HTMLInputElement | null;
-  const winnersListTextArea = document.getElementById('winners-list') as HTMLTextAreaElement | null;
+  const winnersListBody = document.getElementById('winners-list-body') as HTMLTableSectionElement | null;
+  const winnersDownloadButton = document.getElementById('winners-download') as HTMLButtonElement | null;
   const settingsImportButton = document.getElementById('settings-import') as HTMLButtonElement | null;
+  const prizeSelection = document.getElementById('prize-selection') as HTMLDivElement | null;
+  const minorPrizesButton = document.getElementById('minor-prizes-button') as HTMLButtonElement | null;
+  const majorPrizesButton = document.getElementById('major-prizes-button') as HTMLButtonElement | null;
+  const minorPrizesTitle = document.getElementById('minor-prizes-title') as HTMLDivElement | null;
+  const majorPrizesTitle = document.getElementById('major-prizes-title') as HTMLDivElement | null;
 //  const EXPECTED_HASH = '831cb0df7fc66e1168e4576bed1e7607';
 
   // Get the file input element and the import button
@@ -40,9 +46,15 @@ import MD5 from 'md5/md5';
     && nameListTextArea
     && removeNameFromListCheckbox
     && enableSoundCheckbox
-    && winnersListTextArea
+    && winnersListBody
+    && winnersDownloadButton
     && fileInput
     && settingsImportButton
+    && prizeSelection
+    && minorPrizesButton
+    && majorPrizesButton
+    && minorPrizesTitle
+    && majorPrizesTitle
     //&& clapSound
   )) {
     console.error('One or more Element ID is invalid. This is possibly a bug.');
@@ -57,7 +69,21 @@ import MD5 from 'md5/md5';
   const soundEffects = new SoundEffects();
   const MAX_REEL_ITEMS = 60;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
-  let confettiAnimationId;
+  let confettiAnimationId: number | undefined;
+
+  // The prize type is intentionally session-only and is selected on every launch.
+  const selectPrizeType = (isMajorPrize: boolean) => {
+    minorPrizesTitle.style.display = isMajorPrize ? 'none' : 'inline-block';
+    majorPrizesTitle.style.display = isMajorPrize ? 'inline-block' : 'none';
+    prizeSelection.style.display = 'none';
+    drawButton.disabled = false;
+    settingsButton.disabled = false;
+  };
+
+  drawButton.disabled = true;
+  settingsButton.disabled = true;
+  minorPrizesTitle.style.display = 'none';
+  majorPrizesTitle.style.display = 'none';
 
   /** Confeetti animation instance */
   const customConfetti = confetti.create(confettiCanvas, {
@@ -84,9 +110,11 @@ import MD5 from 'md5/md5';
 
   /** Function to stop the winning animation */
   const stopWinningAnimation = () => {
-    if (confettiAnimationId) {
+    if (confettiAnimationId !== undefined) {
       window.cancelAnimationFrame(confettiAnimationId);
+      confettiAnimationId = undefined;
     }
+    customConfetti.reset();
     sunburstSvg.style.display = 'none';
   };
 
@@ -119,13 +147,37 @@ import MD5 from 'md5/md5';
     onNameListChanged: stopWinningAnimation
   });
 
+  const formatWinnerName = (name: string) => {
+    return name.trim();
+  };
+
+  const formatWinnerTime = (timestamp: string) => new Date(timestamp).toLocaleString('en-PH', {
+    timeZone: 'Asia/Manila',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+
+  const escapeCsvValue = (value: string) => `"${value.replace(/"/g, '""')}"`;
+
+  const updateWinnersList = () => {
+    winnersListBody.innerHTML = '';
+    slot.winners.forEach(({ name, timestamp }) => {
+      const row = winnersListBody.insertRow();
+      row.insertCell().textContent = formatWinnerName(name);
+      row.insertCell().textContent = formatWinnerTime(timestamp);
+    });
+    winnersDownloadButton.disabled = !slot.winners.length;
+  };
+
   /** To open the setting page */
   const onSettingsOpen = () => {
     nameListTextArea.value = slot.names.length ? slot.names.join('\n') : '';
     removeNameFromListCheckbox.checked = slot.shouldRemoveWinnerFromNameList;
     enableSoundCheckbox.checked = !soundEffects.mute;
     settingsWrapper.style.display = 'block';
-    winnersListTextArea.value = slot.winners.length ? slot.winners.join('\n') : '';
+    updateWinnersList();
   };
 
   /** To close the setting page */
@@ -141,7 +193,35 @@ import MD5 from 'md5/md5';
       return;
     }
 
-    slot.spin();
+    slot.spin().then((completed) => {
+      if (completed) {
+        updateWinnersList();
+      }
+    });
+  });
+
+  winnersDownloadButton.disabled = true;
+  winnersDownloadButton.addEventListener('click', () => {
+    if (!slot.winners.length) {
+      return;
+    }
+
+    const csv = [
+      ['Winner', 'Timestamp'],
+      ...slot.winners.map(({ name, timestamp }) => [
+        formatWinnerName(name),
+        formatWinnerTime(timestamp)
+      ])
+    ]
+      .map((row) => row.map(escapeCsvValue).join(','))
+      .join('\r\n');
+    const blob = new Blob([`\uFEFF${csv}\r\n`], { type: 'text/csv;charset=utf-8;' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'winners.csv';
+    link.click();
+    URL.revokeObjectURL(downloadUrl);
   });
 
   // Hide fullscreen button when it is not supported
@@ -165,6 +245,9 @@ import MD5 from 'md5/md5';
 
   // Click handler for "Settings" button
   settingsButton.addEventListener('click', onSettingsOpen);
+
+  minorPrizesButton.addEventListener('click', () => selectPrizeType(false));
+  majorPrizesButton.addEventListener('click', () => selectPrizeType(true));
 
   // Click handler for "Save" button for setting page
   settingsSaveButton.addEventListener('click', () => {

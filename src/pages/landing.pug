@@ -9,10 +9,20 @@ include ../mixins/icons
 
   canvas#confetti-canvas.confetti
 
+  #prize-selection.prize-selection
+    .prize-selection__panel
+      h1.prize-selection__title Select Prize Type
+      .prize-selection__actions
+        button#minor-prizes-button.solid-button(type='button') Minor Prizes
+        button#major-prizes-button.solid-button(type='button') Major Prizes
+
   #lucky-draw
-    .title
+    .title#minor-prizes-title
       //- Pug loader currently does not handle webpack alias so we will use relative path here
       include ../assets/images/title.svg
+
+    .title#major-prizes-title
+      img(src="~@images/title-major.svg" alt="Major Prizes")
 
     .slot
       .slot__outer
@@ -61,6 +71,12 @@ include ../mixins/icons
           br
           br
           label.input-label(for="winners-list") Winners List
-          textarea.input-field.input-field--textarea(rows="8" id="winners-list" readonly)
+          table#winners-list.winners-table
+            thead
+              tr
+                th(scope="col") Winner
+                th(scope="col") Time (PH)
+            tbody#winners-list-body
+          button#winners-download.solid-button(type="button" disabled) Download CSV
 
 
