@@ -43,6 +43,7 @@
     "prettier": "^2.7.1",
     "pug": "^3.0.2",
     "pug-html-loader": "^1.1.5",
+    "sass": "^1.104.1",
     "sass-loader": "^13.0.2",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.1",
@@ -63,7 +64,6 @@
     "element-remove-polyfill": "^1.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "md5": "^2.3.0",
-    "node-sass": "^9.0.0",
     "web-animations-js": "^2.3.2"
   },
   "browserslist": [

@@ -19,7 +19,7 @@ import MD5 from 'md5/md5';
   const enableSoundCheckbox = document.getElementById('enable-sound') as HTMLInputElement | null;
   const winnersListTextArea = document.getElementById('winners-list') as HTMLTextAreaElement | null;
   const settingsImportButton = document.getElementById('settings-import') as HTMLButtonElement | null;
-  const EXPECTED_HASH = '831cb0df7fc66e1168e4576bed1e7607';
+//  const EXPECTED_HASH = '831cb0df7fc66e1168e4576bed1e7607';
 
   // Get the file input element and the import button
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -188,15 +188,15 @@ import MD5 from 'md5/md5';
           const stringabc = MD5('abc');
           console.log(stringabc);
           console.log(md5val);
-          if (md5val == EXPECTED_HASH){
+//          if (md5val == EXPECTED_HASH){
             const importedNames = content.split('\n').map(name => name.trim()).filter(name => name !== '');
             nameListTextArea.value = importedNames.length ? importedNames.join('\n') : '';
             console.log('Imported names:', importedNames);
-          }
-          else {
-            nameListTextArea.value = 'Hash Mismatched -- Invalid List';
-            console.error('Hash Mismatched');
-          }
+//          }
+//          else {
+//            nameListTextArea.value = 'Hash Mismatched -- Invalid List';
+//            console.error('Hash Mismatched');
+//          }
         };
         reader.readAsText(file);
       
