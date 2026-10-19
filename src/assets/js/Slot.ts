@@ -192,9 +192,10 @@ private static shuffleNames<T = unknown>(array: T[]): T[] {
 
   /**
    * Function for spinning the slot
+   * @param durationMs Reel animation duration in milliseconds
    * @returns Whether the spin is completed successfully
    */
-  public async spin(): Promise<boolean> {
+  public async spin(durationMs = 3000): Promise<boolean> {
     if (this.isSpinning || !this.nameList.length) {
       console.error('Name List is empty. Cannot start spinning.');
       return false;
@@ -211,6 +212,8 @@ private static shuffleNames<T = unknown>(array: T[]): T[] {
       if (!reelContainer || !reelAnimation) {
         return false;
       }
+
+      reelAnimation.effect?.updateTiming({ duration: durationMs });
 
       // Shuffle names and create reel items
       let randomNames = Slot.shuffleNames<string>(this.nameList);

@@ -45,6 +45,8 @@ include ../mixins/icons
         input(type="file" id="state-file-input" accept=".json" hidden)
         button#state-import.solid-button.solid-button(type="button") Import recovery backup
         button#state-export.solid-button.solid-button(type="button") Export recovery backup
+        button#state-auto-export.solid-button.solid-button(type="button") Enable automatic backup
+        p#state-auto-export-status.backup-status Automatic backup: off
         br
         
         div.input-group

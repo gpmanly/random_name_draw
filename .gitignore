@@ -12,3 +12,6 @@ bundle-analyzer-plugin-report.html
 .env.production.local
 
 /design/appicon-templates-assets
+
+src/assets/~$title.docx
+random_name_draw/

@@ -52,6 +52,8 @@ if (backgroundVideo) {
   const stateFileInput = document.getElementById('state-file-input') as HTMLInputElement | null;
   const stateImportButton = document.getElementById('state-import') as HTMLButtonElement | null;
   const stateExportButton = document.getElementById('state-export') as HTMLButtonElement | null;
+  const stateAutoExportButton = document.getElementById('state-auto-export') as HTMLButtonElement | null;
+  const stateAutoExportStatus = document.getElementById('state-auto-export-status') as HTMLParagraphElement | null;
   const prizeSelection = document.getElementById('prize-selection') as HTMLDivElement | null;
   const minorPrizesButton = document.getElementById('minor-prizes-button') as HTMLButtonElement | null;
   const majorPrizesButton = document.getElementById('major-prizes-button') as HTMLButtonElement | null;
@@ -85,6 +87,8 @@ if (backgroundVideo) {
     && stateFileInput
     && stateImportButton
     && stateExportButton
+    && stateAutoExportButton
+    && stateAutoExportStatus
     && prizeSelection
     && minorPrizesButton
     && majorPrizesButton
@@ -108,8 +112,18 @@ if (backgroundVideo) {
     : null;
   let activePrizeType: PrizeType | null = prizeType;
   const MAX_REEL_ITEMS = 60;
+  const MINOR_SPIN_DURATION_MS = 3000;
+  const MAJOR_SPIN_DURATION_MS = 10000;
+  const AUTO_BACKUP_INTERVAL_MS = 60000;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
   let confettiAnimationId: number | undefined;
+  let autoBackupDirectory: FileSystemDirectoryHandle | null = null;
+  let autoBackupIntervalId: number | undefined;
+  let autoBackupWriteInProgress = false;
+
+  const getSpinDuration = () => activePrizeType === 'major'
+    ? MAJOR_SPIN_DURATION_MS
+    : MINOR_SPIN_DURATION_MS;
 
   const selectPrizeType = (isMajorPrize: boolean) => {
     activePrizeType = isMajorPrize ? 'major' : 'minor';
@@ -165,7 +179,7 @@ if (backgroundVideo) {
     stopWinningAnimation();
     drawButton.disabled = true;
     settingsButton.disabled = true;
-    soundEffects.spin(3);
+    soundEffects.spin(getSpinDuration() / 1000);
   };
 
   /**  Functions to be trigger after spinning */
@@ -250,7 +264,7 @@ if (backgroundVideo) {
       return;
     }
 
-    slot.spin().then((completed) => {
+    slot.spin(getSpinDuration()).then((completed) => {
       if (completed) {
         updateWinnersList();
         saveCurrentState();
@@ -354,8 +368,9 @@ if (backgroundVideo) {
     if (file) importStateFile(file);
   });
 
-  stateExportButton.addEventListener('click', () => {
-    const state = JSON.stringify({
+  const createRecoveryState = (): RaffleState | null => {
+    if (!activePrizeType) return null;
+    return {
       names: slot.names,
       winners: slot.winners,
       prizeType: activePrizeType,
@@ -363,13 +378,105 @@ if (backgroundVideo) {
       soundEnabled: !soundEffects.mute,
       version: 1,
       savedAt: new Date().toISOString()
-    }, null, 2);
+    };
+  };
+
+  const getRecoveryFileName = (selectedPrizeType: PrizeType) => (
+    `raffle-recovery-${selectedPrizeType}.json`
+  );
+
+  const serializeRecoveryState = () => {
+    const state = createRecoveryState();
+    return state ? JSON.stringify(state, null, 2) : null;
+  };
+
+  stateExportButton.addEventListener('click', () => {
+    const state = serializeRecoveryState();
+    if (!state || !activePrizeType) return;
     const url = URL.createObjectURL(new Blob([state], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'raffle-recovery.json';
+    link.download = getRecoveryFileName(activePrizeType);
     link.click();
     URL.revokeObjectURL(url);
+  });
+
+  const clearAutoBackupTimer = () => {
+    if (autoBackupIntervalId !== undefined) {
+      window.clearInterval(autoBackupIntervalId);
+      autoBackupIntervalId = undefined;
+    }
+  };
+
+  const stopAutomaticBackup = (status: string) => {
+    clearAutoBackupTimer();
+    autoBackupDirectory = null;
+    stateAutoExportButton.textContent = 'Enable automatic backup';
+    stateAutoExportStatus.textContent = status;
+  };
+
+  const writeAutomaticBackup = async (): Promise<boolean> => {
+    if (!autoBackupDirectory || autoBackupWriteInProgress) return false;
+    const state = serializeRecoveryState();
+    if (!state || !activePrizeType) return false;
+
+    autoBackupWriteInProgress = true;
+    stateAutoExportButton.disabled = true;
+    try {
+      const fileHandle = await autoBackupDirectory.getFileHandle(
+        getRecoveryFileName(activePrizeType),
+        { create: true }
+      );
+      const writable = await fileHandle.createWritable();
+      await writable.write(new Blob([state], { type: 'application/json' }));
+      await writable.close();
+      stateAutoExportStatus.textContent = `Automatic backup: active (last saved ${new Date().toLocaleTimeString()})`;
+      return true;
+    } catch (error) {
+      stopAutomaticBackup('Automatic backup: stopped after a write error');
+      window.alert('Automatic backup stopped because the selected folder could not be written. Please enable it again.');
+      return false;
+    } finally {
+      autoBackupWriteInProgress = false;
+      stateAutoExportButton.disabled = false;
+    }
+  };
+
+  const startAutoBackupTimer = () => {
+    clearAutoBackupTimer();
+    autoBackupIntervalId = window.setInterval(() => {
+      writeAutomaticBackup();
+    }, AUTO_BACKUP_INTERVAL_MS);
+  };
+
+  if (!window.showDirectoryPicker) {
+    stateAutoExportStatus.textContent = 'Automatic backup requires a Chromium-based browser. Manual export is still available.';
+  }
+
+  stateAutoExportButton.addEventListener('click', async () => {
+    if (!window.showDirectoryPicker) {
+      window.alert('Automatic backup requires a Chromium-based browser. Please use Export recovery backup instead.');
+      return;
+    }
+
+    stateAutoExportButton.disabled = true;
+    const automaticBackupWasActive = autoBackupIntervalId !== undefined;
+    clearAutoBackupTimer();
+    try {
+      const selectedDirectory = await window.showDirectoryPicker({ mode: 'readwrite' });
+      autoBackupDirectory = selectedDirectory;
+      const backupWritten = await writeAutomaticBackup();
+      if (!backupWritten) return;
+      stateAutoExportButton.textContent = 'Change automatic backup folder';
+      startAutoBackupTimer();
+    } catch (error) {
+      if (automaticBackupWasActive && autoBackupDirectory) startAutoBackupTimer();
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        window.alert('The automatic backup folder could not be opened.');
+      }
+    } finally {
+      stateAutoExportButton.disabled = false;
+    }
   });
 
   const savedState = prizeType ? loadRaffleState(prizeType) : null;

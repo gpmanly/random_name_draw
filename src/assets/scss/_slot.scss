@@ -50,8 +50,7 @@
     max-width: $setting-panel-max-width;
     padding: 2rem;
     border-radius: 0.625rem;
-    background-image: url('../images/Paneltest.jpg');
-    background-size: cover;
+    background-color: $color-settings-background-purple;
     color: $color-text-light;
     text-align: center;
     @include shadow('large');
@@ -155,6 +154,7 @@
 
   > div {
     height: $reel-item-height;
+    font-family: 'Helvetica Now', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 3.75rem * $slot-size-factor;
     font-weight: bold;
     text-align: center;
@@ -259,10 +259,8 @@
 
 // Winning effects
 .sunburst {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -50vh 0 0 -50vw;
+  position: fixed;
+  inset: 0;
   width: 100vw;
   height: 100vh;
   display: none;
@@ -274,8 +272,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    margin: -50vmin 0 0 -50vmin;
-    width: 100vmin;
+    margin: -75vmax 0 0 -75vmax;
+    width: 150vmax;
     height: auto;
     animation: rotate 10s infinite linear;
   }
