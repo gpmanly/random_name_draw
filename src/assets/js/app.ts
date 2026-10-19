@@ -2,6 +2,35 @@ import confetti from 'canvas-confetti';
 import Slot from '@js/Slot';
 import SoundEffects from '@js/SoundEffects';
 import MD5 from 'md5/md5';
+import {
+  clearRaffleState,
+  loadRaffleState,
+  parseRaffleState,
+  PrizeType,
+  RaffleState,
+  saveRaffleState
+} from '@js/persistence';
+
+// Some browsers can leave an autoplaying video paused after it reaches the end
+// or after the page returns from the background, even when `loop` is present.
+const backgroundVideo = document.getElementById('background-video') as HTMLVideoElement | null;
+if (backgroundVideo) {
+  const resumeBackgroundVideo = (restart = false) => {
+    if (restart || backgroundVideo.ended) backgroundVideo.currentTime = 0;
+    backgroundVideo.play().catch(() => {
+      // Autoplay can still be blocked by browser or operating-system policy.
+    });
+  };
+
+  backgroundVideo.addEventListener('ended', () => resumeBackgroundVideo(true));
+  backgroundVideo.addEventListener('pause', () => {
+    if (!document.hidden) resumeBackgroundVideo(backgroundVideo.ended);
+  });
+  window.addEventListener('pageshow', () => resumeBackgroundVideo());
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) resumeBackgroundVideo();
+  });
+}
 
 // Initialize slot machine
 (() => {
@@ -20,6 +49,9 @@ import MD5 from 'md5/md5';
   const winnersListBody = document.getElementById('winners-list-body') as HTMLTableSectionElement | null;
   const winnersDownloadButton = document.getElementById('winners-download') as HTMLButtonElement | null;
   const settingsImportButton = document.getElementById('settings-import') as HTMLButtonElement | null;
+  const stateFileInput = document.getElementById('state-file-input') as HTMLInputElement | null;
+  const stateImportButton = document.getElementById('state-import') as HTMLButtonElement | null;
+  const stateExportButton = document.getElementById('state-export') as HTMLButtonElement | null;
   const prizeSelection = document.getElementById('prize-selection') as HTMLDivElement | null;
   const minorPrizesButton = document.getElementById('minor-prizes-button') as HTMLButtonElement | null;
   const majorPrizesButton = document.getElementById('major-prizes-button') as HTMLButtonElement | null;
@@ -50,6 +82,9 @@ import MD5 from 'md5/md5';
     && winnersDownloadButton
     && fileInput
     && settingsImportButton
+    && stateFileInput
+    && stateImportButton
+    && stateExportButton
     && prizeSelection
     && minorPrizesButton
     && majorPrizesButton
@@ -67,12 +102,17 @@ import MD5 from 'md5/md5';
   }
 
   const soundEffects = new SoundEffects();
+  const prizeParameter = new URLSearchParams(window.location.search).get('prize');
+  const prizeType: PrizeType | null = prizeParameter === 'minor' || prizeParameter === 'major'
+    ? prizeParameter
+    : null;
+  let activePrizeType: PrizeType | null = prizeType;
   const MAX_REEL_ITEMS = 60;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
   let confettiAnimationId: number | undefined;
 
-  // The prize type is intentionally session-only and is selected on every launch.
   const selectPrizeType = (isMajorPrize: boolean) => {
+    activePrizeType = isMajorPrize ? 'major' : 'minor';
     minorPrizesTitle.style.display = isMajorPrize ? 'none' : 'inline-block';
     majorPrizesTitle.style.display = isMajorPrize ? 'inline-block' : 'none';
     prizeSelection.style.display = 'none';
@@ -125,7 +165,7 @@ import MD5 from 'md5/md5';
     stopWinningAnimation();
     drawButton.disabled = true;
     settingsButton.disabled = true;
-    soundEffects.spin((MAX_REEL_ITEMS - 1) / 10);
+    soundEffects.spin(3);
   };
 
   /**  Functions to be trigger after spinning */
@@ -147,6 +187,22 @@ import MD5 from 'md5/md5';
     onNameListChanged: stopWinningAnimation
   });
 
+  const saveCurrentState = () => {
+    if (!activePrizeType) return false;
+    return saveRaffleState(activePrizeType, {
+    names: slot.names,
+    winners: slot.winners,
+    removeWinner: slot.shouldRemoveWinnerFromNameList,
+      soundEnabled: !soundEffects.mute
+    });
+  };
+
+  const restoreState = (state: RaffleState) => {
+    if (activePrizeType !== state.prizeType) return;
+    slot.restore(state.names, state.winners, state.removeWinner);
+    soundEffects.mute = !state.soundEnabled;
+  };
+
   const formatWinnerName = (name: string) => {
     return name.trim();
   };
@@ -163,8 +219,9 @@ import MD5 from 'md5/md5';
 
   const updateWinnersList = () => {
     winnersListBody.innerHTML = '';
-    slot.winners.forEach(({ name, timestamp }) => {
+    slot.winners.forEach(({ name, timestamp }, index) => {
       const row = winnersListBody.insertRow();
+      row.insertCell().textContent = String(index + 1);
       row.insertCell().textContent = formatWinnerName(name);
       row.insertCell().textContent = formatWinnerTime(timestamp);
     });
@@ -196,6 +253,7 @@ import MD5 from 'md5/md5';
     slot.spin().then((completed) => {
       if (completed) {
         updateWinnersList();
+        saveCurrentState();
       }
     });
   });
@@ -207,8 +265,9 @@ import MD5 from 'md5/md5';
     }
 
     const csv = [
-      ['Winner', 'Timestamp'],
-      ...slot.winners.map(({ name, timestamp }) => [
+      ['No.', 'Winner', 'Timestamp'],
+      ...slot.winners.map(({ name, timestamp }, index) => [
+        String(index + 1),
         formatWinnerName(name),
         formatWinnerTime(timestamp)
       ])
@@ -256,11 +315,79 @@ import MD5 from 'md5/md5';
       : [];
     slot.shouldRemoveWinnerFromNameList = removeNameFromListCheckbox.checked;
     soundEffects.mute = !enableSoundCheckbox.checked;
-    settingsImportButton.disabled = true;
+    saveCurrentState();
     onSettingsClose();
   });
 
+  const importStateFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const rawContent = String(event.target?.result || '').replace(/^\uFEFF/, '');
+        const state = parseRaffleState(JSON.parse(rawContent), activePrizeType || undefined);
+        if (!state) {
+          window.alert('This is not a valid raffle backup file.');
+          return;
+        }
+        if (state.prizeType !== activePrizeType) {
+          window.alert(`This backup is for the ${state.prizeType} prizes instance.`);
+          return;
+        }
+        if (!window.confirm('Replace the current raffle with this backup?')) return;
+        restoreState(state);
+        saveCurrentState();
+        updateWinnersList();
+        onSettingsClose();
+      } catch (error) {
+        window.alert('This is not a valid raffle backup file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  stateImportButton.addEventListener('click', () => {
+    stateFileInput.click();
+  });
+
+  stateFileInput.addEventListener('change', () => {
+    const file = stateFileInput.files?.[0];
+    if (file) importStateFile(file);
+  });
+
+  stateExportButton.addEventListener('click', () => {
+    const state = JSON.stringify({
+      names: slot.names,
+      winners: slot.winners,
+      prizeType: activePrizeType,
+      removeWinner: slot.shouldRemoveWinnerFromNameList,
+      soundEnabled: !soundEffects.mute,
+      version: 1,
+      savedAt: new Date().toISOString()
+    }, null, 2);
+    const url = URL.createObjectURL(new Blob([state], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'raffle-recovery.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  const savedState = prizeType ? loadRaffleState(prizeType) : null;
+  if (savedState && window.confirm(
+    `Saved ${savedState.prizeType} raffle found (${savedState.names.length} active names, ${savedState.winners.length} winners). Restore it?`
+  )) {
+    restoreState(savedState);
+  } else if (savedState) {
+    clearRaffleState(savedState.prizeType);
+  }
+  if (prizeType) selectPrizeType(prizeType === 'major');
+
   settingsImportButton.addEventListener('click', () => {
+    fileInput.value = '';
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
     if (file) {
         const reader = new FileReader();
@@ -282,9 +409,6 @@ import MD5 from 'md5/md5';
 //          }
         };
         reader.readAsText(file);
-      
-    } else {
-      console.error('No file selected.');
     }
   });
 

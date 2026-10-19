@@ -31,6 +31,8 @@ html(xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en")
     //- Google Tag Manager (noscript)
     include ./partials/gtm-noscript.html
 
-    #app.theme--neon 
+    #app.theme--neon
+      video#background-video.theme__background-video(autoplay muted loop playsinline preload="auto" aria-hidden="true")
+        source(src="~@images/stardust.mp4" type="video/mp4")
       include ./pages/landing.pug
       include ./partials/footer.pug

@@ -20,18 +20,20 @@ $z-index-draw-button: 5;
 $z-index-settings: 10;
 
 // title
-$title-width: 51rem;
+$title-size-factor: 2;
+$title-width: 51rem * $title-size-factor;
 $title-margin-top: 1.75rem;
-$title-margin-bottom: 4.875rem;
+$title-margin-bottom: 0rem; //4.875rem;
 
 // reel
-$reel-item-height: 7.5rem;
+$slot-size-factor: 1.5;
+$reel-item-height: 7.5rem * $slot-size-factor;
 
 // slot
-$slot-width: 62.5rem;
-$slot-height: 14.375rem;
-$slot-border-radius: 1.25rem;
-$slot-border-width: 1.625rem;
+$slot-width: 62.5rem * $slot-size-factor;
+$slot-height: 14.375rem * $slot-size-factor;
+$slot-border-radius: 1.25rem * $slot-size-factor;
+$slot-border-width: 1.625rem * $slot-size-factor;
 $slot-inner-padding: (
     $slot-height - ($slot-border-width * 2) - $reel-item-height
   ) / 2;

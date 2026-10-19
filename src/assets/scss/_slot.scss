@@ -101,11 +101,14 @@
     width: $slot-width;
     height: $slot-height;
     padding: $slot-border-width;
-    margin: 0 auto;
+    margin: 0;
     border-radius: $slot-border-radius;
     @include shadow('large');
     background: $color-slot-background url(@images/light-blubs.svg);
     position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: top center;
     z-index: $z-index-slot; // make sure slot is on top of sunburst
   }
 
@@ -125,7 +128,7 @@
       rgba($color-white, 0.1) 0.13%,
       rgba($color-black, 0.1) 100%
     );
-    height: 5.625rem;
+    height: 5.625rem * $slot-size-factor;
     width: 100%;
     position: absolute;
     bottom: 0;
@@ -141,8 +144,7 @@
       margin: 0 auto;
 
       &__outer {
-        transform: scale($factor);
-        transform-origin: top left;
+        transform: translateX(-50%) scale($factor);
       }
     }
   }
@@ -153,7 +155,7 @@
 
   > div {
     height: $reel-item-height;
-    font-size: 3.75rem;
+    font-size: 3.75rem * $slot-size-factor;
     font-weight: bold;
     text-align: center;
     line-height: $reel-item-height;
@@ -233,10 +235,8 @@
     font-weight: bold;
   }
 
-  #settings-save,
-  #settings-import,
-  #settings-close {
-    margin: 1.875rem 0 0 0;
+  &__panel__group > .solid-button {
+    margin: 1rem 0 0;
     display: block;
     width: 100%;
   }
@@ -253,8 +253,7 @@
 }
 
 .theme--neon .settings__panel {
-  background-image: url('../images/Paneltest.jpg');
-  background-size: cover;
+  background-color: $color-settings-background-purple;
   color: $color-text-light;
 }
 

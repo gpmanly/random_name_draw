@@ -90,11 +90,11 @@ export default class Slot {
         { filter: 'blur(1px)', offset: 0.5 },
         // Here we transform the reel to move up and stop at the top of last item
         // "(Number of item - 1) * height of reel item" of wheel is the amount of pixel to move up
-        // 7.5rem * 16 = 120px, which equals to reel item height
-        { transform: `translateY(-${(this.maxReelItems - 1) * (7.5 * 16)}px)`, filter: 'blur(0)' }
+        // 11.25rem * 16 = 180px, which equals to the enlarged reel item height
+        { transform: `translateY(-${(this.maxReelItems - 1) * (11.25 * 16)}px)`, filter: 'blur(0)' }
       ],
       {
-        duration: this.maxReelItems * 100, // 100ms for 1 item
+        duration: 3000,
         easing: 'ease-in-out',
         iterations: 1
       }
@@ -145,6 +145,15 @@ export default class Slot {
   /** Getter for shouldRemoveWinner */
   get shouldRemoveWinnerFromNameList(): boolean {
     return this.shouldRemoveWinner;
+  }
+
+  /** Restore a previously saved raffle without rebuilding the reel. */
+  restore(names: string[], winners: Winner[], removeWinner: boolean): void {
+    this.nameList = [...names];
+    this.winnersList = [...winners];
+    this.shouldRemoveWinner = removeWinner;
+    this.havePreviousWinner = false;
+    Array.from(this.reelContainer?.children || []).forEach((element) => element.remove());
   }
 
 /**
@@ -225,21 +234,6 @@ private static shuffleNames<T = unknown>(array: T[]): T[] {
       console.log('Displayed items: ', randomNames);
       console.log('Winner: ', randomNames[randomNames.length - 1]);
 
-      /** Save the winner */
-      this.winnersList.push({
-        name: randomNames[randomNames.length - 1],
-        timestamp: new Date().toISOString()
-      });
-
-      // Remove winner form name list if necessary
-      if (shouldRemoveWinner) {
-        this.nameList.splice(this.nameList.findIndex(
-          (name) => name === randomNames[randomNames.length - 1]
-        ), 1);
-      }
-
-      console.log('Remaining: ', this.nameList);
-
       // Play the spin animation
       const animationPromise = new Promise((resolve) => {
         reelAnimation.onfinish = resolve;
@@ -258,6 +252,15 @@ private static shuffleNames<T = unknown>(array: T[]): T[] {
         .forEach((element) => element.remove());
 
       this.havePreviousWinner = true;
+
+      // Commit the draw only after the animation has completed.
+      const winner = randomNames[randomNames.length - 1];
+      this.winnersList.push({ name: winner, timestamp: new Date().toISOString() });
+      if (shouldRemoveWinner) {
+        const winnerIndex = this.nameList.findIndex((name) => name === winner);
+        if (winnerIndex >= 0) this.nameList.splice(winnerIndex, 1);
+      }
+      console.log('Remaining: ', this.nameList);
 
       if (this.onSpinEnd) {
         this.onSpinEnd();

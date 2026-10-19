@@ -18,8 +18,7 @@ include ../mixins/icons
 
   #lucky-draw
     .title#minor-prizes-title
-      //- Pug loader currently does not handle webpack alias so we will use relative path here
-      include ../assets/images/title.svg
+      img(src="~@images/title-minor.svg" alt="Minor Prizes")
 
     .title#major-prizes-title
       img(src="~@images/title-major.svg" alt="Major Prizes")
@@ -41,8 +40,11 @@ include ../mixins/icons
       div.settings__panel__group
         h1.settings__title Settings
 
-        <input type="file" id="file-input" accept=".txt">
-        button#settings-import.solid-button.solid-button Import
+        input(type="file" id="file-input" accept=".txt,.csv,text/plain,text/csv" hidden)
+        button#settings-import.solid-button.solid-button(type="button") Import name list
+        input(type="file" id="state-file-input" accept=".json" hidden)
+        button#state-import.solid-button.solid-button(type="button") Import recovery backup
+        button#state-export.solid-button.solid-button(type="button") Export recovery backup
         br
         
         div.input-group
@@ -74,6 +76,7 @@ include ../mixins/icons
           table#winners-list.winners-table
             thead
               tr
+                th(scope="col") No.
                 th(scope="col") Winner
                 th(scope="col") Time (PH)
             tbody#winners-list-body
