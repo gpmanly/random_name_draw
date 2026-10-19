@@ -114,9 +114,11 @@ if (backgroundVideo) {
   const MAX_REEL_ITEMS = 60;
   const MINOR_SPIN_DURATION_MS = 3000;
   const MAJOR_SPIN_DURATION_MS = 10000;
+  const WINNING_ANIMATION_DURATION_MS = 15000;
   const AUTO_BACKUP_INTERVAL_MS = 60000;
   const CONFETTI_COLORS = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
   let confettiAnimationId: number | undefined;
+  let winningAnimationTimeoutId: number | undefined;
   let autoBackupDirectory: FileSystemDirectoryHandle | null = null;
   let autoBackupIntervalId: number | undefined;
   let autoBackupWriteInProgress = false;
@@ -164,6 +166,10 @@ if (backgroundVideo) {
 
   /** Function to stop the winning animation */
   const stopWinningAnimation = () => {
+    if (winningAnimationTimeoutId !== undefined) {
+      window.clearTimeout(winningAnimationTimeoutId);
+      winningAnimationTimeoutId = undefined;
+    }
     if (confettiAnimationId !== undefined) {
       window.cancelAnimationFrame(confettiAnimationId);
       confettiAnimationId = undefined;
@@ -186,6 +192,10 @@ if (backgroundVideo) {
   const onSpinEnd = async () => {
     confettiAnimation();
     sunburstSvg.style.display = 'block';
+    winningAnimationTimeoutId = window.setTimeout(
+      stopWinningAnimation,
+      WINNING_ANIMATION_DURATION_MS
+    );
     await soundEffects.win();
     //await clapSound.play();
     drawButton.disabled = false;
